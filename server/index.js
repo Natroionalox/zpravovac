@@ -91,10 +91,6 @@ wss.on("connection", (socket) => {
 
     setTimeout(() => {
     socket.send(JSON.stringify({
-        type: "SYSTEM",
-        message: "Vítej " + name
-    }));
-    socket.send(JSON.stringify({
         type: "NAME",
         name: name
     }))
@@ -110,6 +106,11 @@ wss.on("connection", (socket) => {
     for(let mess of history){
         socket.send(mess);
     }
+    
+    socket.send(JSON.stringify({
+        type: "SYSTEM",
+        message: "Vítej " + name
+    }));
 }, 50);
 
 });
