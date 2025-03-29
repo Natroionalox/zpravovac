@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+
+<body>
+    <input id="name" type="text">
+    <button id="nameSend">Zmenit</button>
+
+    <div id="chat"></div>
+
+    <input id="message" type="text">
+    <input id="image" type="file" accept="image/*">
+    <button id="messageSend">Odeslat</button>
+
+    <script>
+        const userName = localStorage.getItem("userName"); //get user name from local storage and establish connection
+        const socket = new WebSocket('ws://localhost:8080');
+
+
+//-----------------------------------------MESSAGE READ--------------------------------------------------
+        const chatElement = document.querySelector("#chat");
+        socket.addEventListener('message', (event) => {
+            const message = JSON.parse(event.data);
+            const type = message.type;
+
+            switch(type) {
+                case "NEW_MESSAGE": {
+                    chatElement.innerHTML += `<div style="display: flex; flex-direction: column;"><p style="margin: 0; font-size:0.7em; colog:gray;">${message.time}</p><p style="margin: 0; padding-bottom: 15px;"><b>${message.author}</b>: ${message.message}</p></div>` 
+                    break;
+                }
+                case "SYSTEM": {
+                    chatElement.innerHTML += `<div style="display: flex; flex-direction: column;"><p style="margin: 0; font-size:0.7em; colog:gray;">${message.time}</p><p style="color: red; margin: 0; padding-bottom: 15px;">${message.message}</p></div>` 
+                    break;
+                }
+                case "IMAGE": {
+                    chatElement.innerHTML += `<div style="display: flex; flex-direction: column;"><p style="margin: 0; font-size:0.7em; colog:gray;">${message.time}</p><p style="margin: 0; padding-bottom: 15px;"><b>${message.author}</b>: <img src="${message.message}" alt="Image" style="max-width: 200px; max-height: 200px;"></p></div>` 
+                    break;
+                }
+                case "NAME": {
+                    document.querySelector("#name").value = message.name;
+                    break;
+                }
+            }
+
+        });
+
+
+//-----------------------------------------SEND MESSAGE--------------------------------------------------
+
+        document.querySelector("#messageSend").addEventListener("click", () => {
+            const messageType = document.querySelector("#message").value != ""? "NEW_MESSAGE" : "IMAGE";
+            const messageElement = document.querySelector("#message");
+            const imageElement = document.querySelector("#image");
+            
+
+            //SEND IMAGE OR MESSAGE
+            if (messageType === "IMAGE") {
+                let reader = new FileReader();
+
+                reader.onload = function(event){
+                        socket.send(JSON.stringify({
+                        type: "IMAGE",
+                        time: new Date().toLocaleTimeString(),
+                        message: reader.result
+                    }));
+                }
+
+                reader.readAsDataURL(imageElement.files[0]);
+
+            } else {
+                socket.send(JSON.stringify({
+                    type: "NEW_MESSAGE",
+                    time: new Date().toLocaleTimeString(),
+                    message: messageElement.value
+                }));
+            }
+            imageElement.value = "";
+            messageElement.value = "";
+        });
+
+        //SEND NAME
+        document.querySelector("#nameSend").addEventListener("click", () => {
+            const nameElement = document.querySelector("#name");
+            localStorage.setItem("userName", nameElement.value);
+            socket.send(JSON.stringify({
+                type: "NAME",
+                name: nameElement.value
+            }));
+            nameElement.value = "";
+        });
+
+
+        //SEND NAME ON WS OPEN
+        //send only if username is saved in ls
+        //send before name assigned by server
+        if (userName) {
+            socket.addEventListener("open", (ev) => {
+                document.querySelector("#name").value = userName;
+                document.querySelector("#nameSend").click();
+            });
+        }
+    </script>
+</body>
+
+</html>
