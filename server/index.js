@@ -116,7 +116,7 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, "127.0.0.1", () => {
+server.listen(PORT, () => {
     console.log(`Server běží na portu ${PORT}`);;
 });
 
