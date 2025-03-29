@@ -7,6 +7,8 @@ const sockets = [];
 const history = [];
  
 server.on("connection", (socket) => {
+
+    console.log("yuh im here")
     sockets.push(socket);
     let name = "UNKNOWN" + crypto.randomUUID();
     let firstMessageRecieved = false;
