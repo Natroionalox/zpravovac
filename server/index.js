@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const http = require("http");
 const WebSocket = require("ws");
  
@@ -6,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static("../client")); 
+
 
 console.log("yuh im here")
 
@@ -107,7 +108,16 @@ wss.on("connection", (socket) => {
 
 });
 
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-    console.log(`Server běží na portu ${PORT}`);
+
+app.use(express.static(path.join(__dirname, "../klient"))); 
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "../klient/index.html"));
 });
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, "127.0.0.1", () => {
+    console.log(`Server běží na portu ${PORT}`);;
+});
+
+
