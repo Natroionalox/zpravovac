@@ -1,18 +1,24 @@
-const ws = require("ws");
+const express = require("express");
+const http = require("http");
+const WebSocket = require("ws");
  
-const server = new ws.Server({ port: 8080 });
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+app.use(express.static("../client")); 
+
 console.log("yuh im here")
 
 const sockets = [];
 
 const history = [];
  
-server.on("connection", (socket) => {
+wss.on("connection", (socket) => {
 
     
     sockets.push(socket);
     let name = "UNKNOWN" + crypto.randomUUID();
-    let firstMessageRecieved = false;
 
     socket.on("close", () => {
         for(socket of sockets){
@@ -99,4 +105,9 @@ server.on("connection", (socket) => {
     }
 }, 50);
 
+});
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+    console.log(`Server běží na portu ${PORT}`);
 });
